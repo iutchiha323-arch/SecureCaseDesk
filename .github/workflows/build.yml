@@ -1,10 +1,11 @@
-name: Build SecureCaseDesk APK
+
+name: Build SecureCaseDesk Android APK
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,24 +15,25 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-latest
 
-    env:
-      PYTHONUTF8: "1"
-      PYTHONIOENCODING: utf-8
-      FLET_CLI_NO_RICH_OUTPUT: "1"
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v6
 
-      - name: Build APK with Flet Action
+      - name: Build APK
+        id: build
         uses: flet-dev/flet-build-action@v1
         with:
           target: apk
-          runner-python-version: '3.12'
+          working-directory: .
+          runner-python-version: "3.14"
+          bundled-python-version: "3.14"
+          build-number: ${{ github.run_number }}
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Upload APK build
+        uses: actions/upload-artifact@v7
         with:
-          name: SecureCaseDesk-APK
+          name: SecureCaseDesk-Android-APK
           path: ${{ steps.build.outputs.archive-path }}
+          archive: false
           if-no-files-found: error
+          retention-days: 30
