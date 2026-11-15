@@ -1,63 +1,67 @@
-name: Build SecureCaseDesk APK and EXE
+name: Build APK and EXE
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "main", "master" ]
-    tags: [ "v*" ]
-
-permissions:
-  contents: read
 
 jobs:
   build-apk:
-    name: Build Android APK
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build APK with Flet
-        id: build
-        uses: flet-dev/flet-build-action@v1
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          target: apk
-          working-directory: .
-          runner-python-version: "3.12"
-          bundled-python-version: "3.12"
-          build-number: ${{ github.run_number }}
+          distribution: 'temurin'
+          java-version: '21'
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v7
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          name: SecureCaseDesk-Android-APK
-          path: ${{ steps.build.outputs.archive-path }}
-          archive: false
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flet
+
+      - name: Build APK
+        run: |
+          flet build apk --verbose
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SecureCaseDesk-APK
+          path: build/apk
           if-no-files-found: error
-          retention-days: 14
 
-  build-windows:
-    name: Build Windows application
+  build-exe:
     runs-on: windows-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Windows app with Flet
-        id: build
-        uses: flet-dev/flet-build-action@v1
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          target: windows
-          working-directory: .
-          runner-python-version: "3.12"
-          bundled-python-version: "3.12"
-          build-number: ${{ github.run_number }}
+          python-version: '3.12'
 
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v7
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flet
+
+      - name: Build EXE
+        run: |
+          flet build windows --verbose
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
         with:
           name: SecureCaseDesk-Windows
-          path: ${{ steps.build.outputs.archive-path }}
-          archive: false
+          path: build/windows
           if-no-files-found: error
-          retention-days: 14
