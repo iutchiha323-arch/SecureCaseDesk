@@ -6,6 +6,9 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    env:
+      PYTHONUTF8: 1
+      PYTHONIOENCODING: utf-8
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,7 +32,7 @@ jobs:
 
       - name: Build APK
         run: |
-          flet build apk --verbose
+          flet build apk --verbose --no-rich-output
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -40,6 +43,9 @@ jobs:
 
   build-exe:
     runs-on: windows-latest
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -57,7 +63,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          flet build windows --verbose
+          flet build windows --verbose --no-rich-output
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
