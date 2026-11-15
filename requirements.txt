@@ -1,5 +1,6 @@
+
 flet==0.28.3
-cryptography
+cryptography==43.0.1
 python-docx
 argon2-cffi
 httpx
