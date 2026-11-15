@@ -19,14 +19,6 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android Licenses
-        run: |
-          yes | sdkmanager --licenses || true
-          yes | flutter doctor --android-licenses || true
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -38,8 +30,24 @@ jobs:
           pip install -r requirements.txt
           pip install flet
 
+      - name: Setup Android SDK (Manual)
+        run: |
+          # تثبيت نسخة محددة من أدوات سطر أوامر Android SDK لتجنب مشاكل التوافق
+          export ANDROID_HOME=$HOME/.android/sdk
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
+          unzip -q cmdline-tools.zip
+          mv cmdline-tools latest
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
       - name: Build APK
         run: |
+          # استخدام sdkmanager المثبت حديثاً
+          export ANDROID_HOME=$HOME/.android/sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
           flet build apk --verbose --no-rich-output
 
       - name: Upload APK
@@ -69,13 +77,14 @@ jobs:
           pip install -r requirements.txt
           pip install flet
 
-      - name: Build EXE
+      - name: Build EXE (Using flet pack)
         run: |
-          flet build windows --verbose --no-rich-output
+          # flet pack لا يحتاج إلى Visual Studio أو Flutter toolchain
+          flet pack src/main.py --name SecureCaseDesk --product-name "SecureCaseDesk" --company "SecureCaseDesk" --icon "src/assets/icon.png" --yes
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
           name: SecureCaseDesk-Windows
-          path: build/windows
+          path: dist
           if-no-files-found: error
