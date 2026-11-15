@@ -1,28 +1,23 @@
+
 [project]
 name = "securecasedesk"
 version = "2.2.0"
-description = "منظومة محلية مشفرة لإدارة القضايا والملفات الأمنية"
+description = "SecureCaseDesk - Case Management System"
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.13,<3.15"
 dependencies = [
-  "flet==0.28.3",
-  "cryptography>=44.0.0",
-  "python-docx>=1.1.2",
-  "argon2-cffi",
-  "httpx",
+    "flet==0.86.0",
+    "cryptography>=45.0.0",
+    "reportlab>=4.2.0",
+    "python-docx>=1.1.0",
+    "Pillow>=11.0.0"
 ]
 
 [tool.flet]
 org = "com.securecasedesk"
-bundle_id = "com.securecasedesk.app"
-artifact = "SecureCaseDesk"
 product = "SecureCaseDesk"
 company = "SecureCaseDesk"
-description = "منظومة إدارة القضايا والملفات الأمنية"
 copyright = "Copyright 2026"
 
 [tool.flet.app]
 path = "src"
-
-[tool.flet.android]
-min_sdk_version = 23
