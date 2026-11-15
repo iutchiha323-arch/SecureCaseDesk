@@ -1,97 +1,62 @@
 
-name: Build APK and EXE
+name: Build SecureCaseDesk APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 jobs:
   build-apk:
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     env:
       PYTHONUTF8: "1"
       PYTHONIOENCODING: utf-8
+      FLET_CLI_NO_RICH_OUTPUT: "1"
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
+      - name: Upgrade pip
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install project dependencies
+        run: |
           pip install -r requirements.txt
-          pip install "flet==0.28.3"
+          pip install flet==0.28.3
 
-      - name: Setup Android SDK
+      - name: Build Android APK
         run: |
-          export ANDROID_HOME="$HOME/.android/sdk"
-          mkdir -p "$ANDROID_HOME/cmdline-tools"
-          cd "$ANDROID_HOME/cmdline-tools"
+          flet build apk --verbose
 
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip
-          mv cmdline-tools latest
-
-          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;34.0.0"
-
-      - name: Build APK
+      - name: Find APK
         run: |
-          flet build apk --verbose --no-rich-output
+          find . -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SecureCaseDesk-APK
-          path: build/apk
+          name: SecureCaseDesk-Android-APK
+          path: build/apk/*.apk
           if-no-files-found: error
-
-  build-exe:
-    runs-on: windows-latest
-
-    env:
-      PYTHONUTF8: "1"
-      PYTHONIOENCODING: utf-8
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install "flet==0.28.3" pyinstaller
-
-      - name: Build EXE
-        run: |
-          flet pack src/main.py --name SecureCaseDesk --product-name "SecureCaseDesk" --company "SecureCaseDesk" --yes
-
-      - name: Upload EXE
-        uses: actions/upload-artifact@v4
-        with:
-          name: SecureCaseDesk-Windows
-          path: dist
-          if-no-files-found: error
+          retention-days: 14
