@@ -80,7 +80,7 @@ jobs:
       - name: Build EXE (Using flet pack)
         run: |
           # flet pack لا يحتاج إلى Visual Studio أو Flutter toolchain
-          flet pack src/main.py --name SecureCaseDesk --product-name "SecureCaseDesk" --company "SecureCaseDesk" --icon "src/assets/icon.png" --yes
+          flet pack src/main.py --name SecureCaseDesk --product-name "SecureCaseDesk" --company "SecureCaseDesk" --yes
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
