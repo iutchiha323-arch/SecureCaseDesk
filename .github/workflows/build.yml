@@ -1,3 +1,4 @@
+
 name: Build APK and EXE
 
 on:
@@ -6,9 +7,11 @@ on:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+
     env:
-      PYTHONUTF8: 1
+      PYTHONUTF8: "1"
       PYTHONIOENCODING: utf-8
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,38 +19,41 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '21'
+          distribution: temurin
+          java-version: "17"
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flet
+          pip install "flet==0.28.3"
 
-      - name: Setup Android SDK (Manual)
+      - name: Setup Android SDK
         run: |
-          # تثبيت نسخة محددة من أدوات سطر أوامر Android SDK لتجنب مشاكل التوافق
-          export ANDROID_HOME=$HOME/.android/sdk
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
+          export ANDROID_HOME="$HOME/.android/sdk"
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          cd "$ANDROID_HOME/cmdline-tools"
+
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip
           unzip -q cmdline-tools.zip
           mv cmdline-tools latest
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;34.0.0"
 
       - name: Build APK
         run: |
-          # استخدام sdkmanager المثبت حديثاً
-          export ANDROID_HOME=$HOME/.android/sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
           flet build apk --verbose --no-rich-output
 
       - name: Upload APK
@@ -59,9 +65,11 @@ jobs:
 
   build-exe:
     runs-on: windows-latest
+
     env:
       PYTHONUTF8: "1"
-      PYTHONIOENCODING: "utf-8"
+      PYTHONIOENCODING: utf-8
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -69,17 +77,16 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flet
+          pip install "flet==0.28.3" pyinstaller
 
-      - name: Build EXE (Using flet pack)
+      - name: Build EXE
         run: |
-          # flet pack لا يحتاج إلى Visual Studio أو Flutter toolchain
           flet pack src/main.py --name SecureCaseDesk --product-name "SecureCaseDesk" --company "SecureCaseDesk" --yes
 
       - name: Upload EXE
