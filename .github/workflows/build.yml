@@ -19,6 +19,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android Licenses
+        run: |
+          yes | sdkmanager --licenses || true
+          yes | flutter doctor --android-licenses || true
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
